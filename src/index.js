@@ -25,7 +25,15 @@ connectDB()
     console.log("MONGO db connection failed !!! ", err);
   });
 
-connectDB();
+connectDB()
+  .then(() => {
+    app.listen(process.env.PORT || 8000, () => {
+      console.log(`o server is running at port: ${process.env.PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.log("Mongodb connection failed !!!");
+  });
 
 // (async () => {
 //   try {
