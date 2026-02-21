@@ -36,7 +36,7 @@ const UserSchema = new Schema(
       type: String,
     },
     refreshTokens: {
-      type: string,
+      type: String,
     },
     watchHistory: {
       type: Schema.Types.ObjectId,
