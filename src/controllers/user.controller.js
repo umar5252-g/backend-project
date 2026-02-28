@@ -40,7 +40,7 @@ const registerUser = asyncHandler(async (req, res) => {
   if (existedUser) {
     throw new apiError(409, "User with the email or username already exists");
   }
-  console.log(req.files);
+  // console.log(req.files);
   const avatarLocalPath = req.files?.avatar[0]?.path;
   // const coverImageLocalPath = req.files?.coverImage[0]?.path;
 
@@ -86,4 +86,26 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, createdUser, "User registered Successfully"));
 });
 
+const loginUser = asyncHandler(async (req, res) => {
+  // req body ->data
+  //check username or email
+  //find the user
+  //password check
+  //access and refresh token
+  //send cookie
+
+  const { username, email, password } = req.body;
+
+  if (!username || !email) {
+    throw new apiError(400, "username or email is required");
+  }
+
+  const user = await User.findOne({
+    $or: [{ username, email }],
+  });
+
+  if (!user) {
+    throw new apiError(404, "User does not exist");
+  }
+});
 export { registerUser };
