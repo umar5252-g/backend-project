@@ -190,7 +190,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRereshToken = req.cookies.refreshToken || req.body.refreshToken;
 
   if (!incomingRereshToken) {
-    throw new ApiError(401, "Refresh token is required");
+    throw new ApiError(401, "unauthorized request");
   }
   try {
     const decodedToken = jwt.verify(
