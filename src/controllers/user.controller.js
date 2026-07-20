@@ -401,6 +401,16 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     .status(200)
     .json(ApiResponse(200, channel[0], "User channel fetched successfully"));
 });
+
+const getWatchHistory = asyncHandler(async (req, res) => {
+  const user = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(req.user._id),
+      },
+    },
+  ]);
+});
 export {
   registerUser,
   loginUser,
@@ -412,4 +422,5 @@ export {
   updateUserAvatar,
   updateUserCoverImage,
   getUserChannelProfile,
+  getWatchHistory,
 };
