@@ -11,6 +11,14 @@ const likesSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: Video,
     },
+    likedBy: {
+      type: Schema.Types.ObjectId,
+      ref: Video,
+    },
+    tweet: {
+      type: Schema.Types.ObjectId,
+      ref: Tweet,
+    },
   },
   { timestamps: true },
 );
