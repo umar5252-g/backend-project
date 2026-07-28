@@ -107,25 +107,25 @@ const updateComment = asyncHandler(async (req, res) => {
 });
 
 const deleteComment = asyncHandler(async (req, res) => {
-  // TODO: delete a comment
   const { commentId } = req.params;
 
   if (!commentId) {
     throw new ApiError(400, "commentId is required");
   }
+
   if (!mongoose.isValidObjectId(commentId)) {
     throw new ApiError(400, "invalid commentId");
   }
 
-  const deletedComment = await Comment.findByIdAndDelete(
-    {
-      _id: commentId,
-      owner: req.body._id,
-    },
-    {
-      new: false,
-    },
-  );
+  const deletedComment = await Comment.findOneAndDelete({
+    _id: commentId,
+    owner: req.user._id,
+  });
+
+  if (!deletedComment) {
+    throw new ApiError(404, "Comment not found");
+  }
+
   return res
     .status(200)
     .json(new ApiResponse(200, deletedComment, "comment deleted successfully"));
