@@ -53,6 +53,9 @@ const addComment = asyncHandler(async (req, res) => {
   if (!videoId) {
     throw new ApiError(400, "videoId is required");
   }
+  if (!mongoose.isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid videoId");
+  }
   if (!content) {
     throw new ApiError(400, "content is required");
   }
