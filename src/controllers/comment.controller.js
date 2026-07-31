@@ -90,8 +90,10 @@ const updateComment = asyncHandler(async (req, res) => {
 
   const comment = await Comment.findOneAndUpdate(
     {
-      _id: commentId,
-      owner: req.user._id,
+      $set: {
+        _id: commentId,
+        owner: req.user._id,
+      },
     },
     { content },
     { new: true },

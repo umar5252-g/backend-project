@@ -87,12 +87,17 @@ const updateVideo = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid video id");
   }
 
+  const updateFields = {};
+  if (req.body.title !== undefined) updateFields.title = req.body.title;
+  if (req.body.description !== undefined)
+    updateFields.description = req.body.description;
+  if (req.body.thumbnail !== undefined)
+    updateFields.thumbnail = req.body.thumbnail;
+
   const video = await Video.findOneAndUpdate(
     { _id: videoId, owner: req.user._id },
     {
-      title: req.body.title,
-      description: req.body.description,
-      thumbnail: req.body.thumbnail,
+      $set: updateFields,
     },
     { new: true },
   );
