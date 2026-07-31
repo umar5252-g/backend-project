@@ -79,6 +79,31 @@ const getVideoById = asyncHandler(async (req, res) => {
 const updateVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   //TODO: update video details like title, description, thumbnail
+  if (!videoId) {
+    throw new ApiError(400, "Video id is required");
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(videoId)) {
+    throw new ApiError(400, "Invalid video id");
+  }
+
+  const video = await Video.findOneAndUpdate(
+    { _id: videoId, owner: req.user._id },
+    {
+      title: req.body.title,
+      description: req.body.description,
+      thumbnail: req.body.thumbnail,
+    },
+    { new: true },
+  );
+
+  if (!video) {
+    throw new ApiError(404, "Video not found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, video, "Video updated successfully"));
 });
 
 const deleteVideo = asyncHandler(async (req, res) => {
