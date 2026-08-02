@@ -23,7 +23,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {
-  const { title, discription } = req.body;
+  const { title, description } = req.body;
 
   const videoLocalPath = req.files?.video?.[0]?.path;
 
@@ -38,7 +38,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
   const newVideo = await Video.create({
     title,
-    discription,
+    description,
     videoFile: uploadedVideo.url,
     thumbnail: "",
     owner: req.user._id,
@@ -138,6 +138,21 @@ const deleteVideo = asyncHandler(async (req, res) => {
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
+  if (!videoId) {
+    throw new ApiError(400, "Video id is required");
+  }
+  if (!mongoose.Types.ObjectId.isValid(videoId)) {
+    throw new ApiError(400, "Invalid video id");
+  }
+  const video = await Video.findOne({ _id: videoId, owner: req.user._id });
+  if (!video) {
+    throw new ApiError(404, "Video not found");
+  }
+  video.isPublished = !video.isPublished;
+  await video.save();
+  return res
+    .status(200)
+    .json(new ApiResponse(200, video, "Publish status toggled successfully"));
 });
 
 export {
