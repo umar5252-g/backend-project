@@ -16,7 +16,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
   const playList = new Playlist({
     name,
     description,
-    videos: req.video._id,
+    videos: [],
     owner: req.user._id,
   });
   await playList.save();
@@ -33,6 +33,19 @@ const createPlaylist = asyncHandler(async (req, res) => {
 const getUserPlaylists = asyncHandler(async (req, res) => {
   const { userId } = req.params;
   //TODO: get user playlists
+
+  if (!userId || !isValidObjectId(userId)) {
+    throw new ApiError(400, "Invalid user id");
+  }
+
+  const playlists = await Playlist.find({ owner: userId });
+  if (!playlists || playlists.length === 0) {
+    throw new ApiError(404, "No playlists found for this user");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, playlists, "Playlists fetched successfully"));
 });
 
 const getPlaylistById = asyncHandler(async (req, res) => {
