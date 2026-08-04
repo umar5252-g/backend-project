@@ -66,6 +66,9 @@ const addComment = asyncHandler(async (req, res) => {
     content,
   });
   await comment.save();
+  if (!comment) {
+    throw new ApiError("400", "something went wront, unable to create comment");
+  }
 
   return res
     .status(201)

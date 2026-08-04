@@ -7,7 +7,27 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 const createPlaylist = asyncHandler(async (req, res) => {
   const { name, description } = req.body;
 
+  if (!(name || description)) {
+    throw new ApiError(400, "playList is not defined");
+  }
+
   //TODO: create playlist
+
+  const playList = new Playlist({
+    name,
+    description,
+    videos: req.video._id,
+    owner: req.user._id,
+  });
+  await playList.save();
+
+  if (!playList) {
+    throw new ApiError(400, "Playlist not created");
+  }
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, playList, "Playlist created successfully"));
 });
 
 const getUserPlaylists = asyncHandler(async (req, res) => {
