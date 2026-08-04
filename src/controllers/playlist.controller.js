@@ -116,26 +116,46 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Video not found in playlist");
   }
 
-  Playlist.deleteOne({ _id: playlistId, videos: videoId }, function (err) {
-    if (err) {
-      throw new ApiError(500, "Error removing video from playlist");
-    }
+  Playlist.updateOne(
+    { _id: playlistId },
+    { $pull: { videos: videoId } },
+    function (err) {
+      if (err) {
+        throw new ApiError(500, "Error removing video from playlist");
+      }
 
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          playlist,
-          "Video removed from playlist successfully",
-        ),
-      );
-  });
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            playlist,
+            "Video removed from playlist successfully",
+          ),
+        );
+    },
+  );
   // TODO: remove video from playlist
 });
 
 const deletePlaylist = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
+  if (!playlistId || !isValidObjectId(playlistId)) {
+    throw new ApiError(400, "Invalid playlist id");
+  }
+  const playlist = await Playlist.findById(playlistId);
+  if (!playlist) {
+    throw new ApiError(404, "Playlist not found");
+  }
+  const deletedPlaylist = await Playlist.findByIdAndDelete(playlistId);
+  if (!deletedPlaylist) {
+    throw new ApiError(500, "Error deleting playlist");
+  }
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, deletedPlaylist, "Playlist deleted successfully"),
+    );
   // TODO: delete playlist
 });
 
@@ -149,6 +169,15 @@ const updatePlaylist = asyncHandler(async (req, res) => {
   if (!name) {
     throw new ApiError(400, "Playlist name is required");
   }
+  const playlist = await Playlist.findById(playlistId);
+  if (!playlist) {
+    throw new ApiError(404, "Playlist not found");
+  }
+  const updatedPlaylist = await Playlist.findByIdAndUpdate(
+    playlistId,
+    { name, description },
+    { new: true },
+  );
   //TODO: update playlist
 });
 
