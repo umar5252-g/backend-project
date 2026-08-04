@@ -98,6 +98,38 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
 
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
   const { playlistId, videoId } = req.params;
+
+  if (!playlistId || !isValidObjectId(playlistId)) {
+    throw new ApiError(400, "Invalid playlist id");
+  }
+  if (!videoId || !isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid video id");
+  }
+
+  const playlist = await Playlist.findById(playlistId);
+  if (!playlist) {
+    throw new ApiError(404, "Playlist not found");
+  }
+  const videoExists = playlist.videos.includes(videoId);
+  if (!videoExists) {
+    throw new ApiError(404, "Video not found in playlist");
+  }
+
+  Playlist.deleteOne({ _id: playlistId, videos: videoId }, function (err) {
+    if (err) {
+      throw new ApiError(500, "Error removing video from playlist");
+    }
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          playlist,
+          "Video removed from playlist successfully",
+        ),
+      );
+  });
   // TODO: remove video from playlist
 });
 
