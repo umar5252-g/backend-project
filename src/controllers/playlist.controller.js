@@ -7,8 +7,9 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 const createPlaylist = asyncHandler(async (req, res) => {
   const { name, description } = req.body;
 
-  if (!(name || description)) {
-    throw new ApiError(400, "playList is not defined");
+  const findPlaylist = await Playlist.findOne({ name, owner: req.user._id });
+  if (findPlaylist) {
+    throw new ApiError(400, "Playlist with this name already exists");
   }
 
   //TODO: create playlist
@@ -141,6 +142,13 @@ const deletePlaylist = asyncHandler(async (req, res) => {
 const updatePlaylist = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
   const { name, description } = req.body;
+  if (!playlistId || !isValidObjectId(playlistId)) {
+    throw new ApiError(400, "Invalid playlist id");
+  }
+
+  if (!name) {
+    throw new ApiError(400, "Playlist name is required");
+  }
   //TODO: update playlist
 });
 
