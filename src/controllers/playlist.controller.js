@@ -169,11 +169,20 @@ const updatePlaylist = asyncHandler(async (req, res) => {
   if (!playlist) {
     throw new ApiError(404, "Playlist not found");
   }
+  // check if the user own the playlist
+  if (playlist.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not the owner of this playlist");
+  }
   const updatedPlaylist = await Playlist.findByIdAndUpdate(
     playlistId,
     { name, description },
     { new: true },
   );
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, updatedPlaylist, "Playlist updated successfully"),
+    );
   //TODO: update playlist
 });
 
