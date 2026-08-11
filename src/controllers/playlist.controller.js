@@ -20,6 +20,9 @@ const createPlaylist = asyncHandler(async (req, res) => {
     videos: [],
     owner: req.user._id,
   });
+  if (!playList) {
+    throw new ApiError(400, "Playlist not created");
+  }
   await playList.save();
 
   if (!playList) {
