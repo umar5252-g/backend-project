@@ -6,6 +6,9 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 const createPlaylist = asyncHandler(async (req, res) => {
   const { name, description } = req.body;
+  if (!name) {
+    throw new ApiError(400, "Playlist name is required");
+  }
 
   const findPlaylist = await Playlist.findOne({ name, owner: req.user._id });
   if (findPlaylist) {
@@ -42,7 +45,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid user id");
   }
 
-  const playlists = await Playlist.find({ owner: userId });
+  const playlists = await Playlist.find({ owner: userId }).populate("videos");
   if (!playlists || playlists.length === 0) {
     throw new ApiError(404, "No playlists found for this user");
   }
@@ -86,10 +89,9 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Playlist not found");
   }
   const videoExists = playlist.videos.includes(videoId);
-  if (!videoExists) {
-    throw new ApiError(404, "Video not found in playlist");
+  if (videoExists) {
+    throw new ApiError(400, "Video already exists in playlist");
   }
-
   playlist.videos.push(videoId);
   await playlist.save();
 
@@ -118,26 +120,17 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
   if (!videoExists) {
     throw new ApiError(404, "Video not found in playlist");
   }
-
-  Playlist.updateOne(
-    { _id: playlistId },
-    { $pull: { videos: videoId } },
-    function (err) {
-      if (err) {
-        throw new ApiError(500, "Error removing video from playlist");
-      }
-
-      return res
-        .status(200)
-        .json(
-          new ApiResponse(
-            200,
-            playlist,
-            "Video removed from playlist successfully",
-          ),
-        );
-    },
-  );
+  playlist.videos.pull(videoId);
+  await playlist.save();
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        playlist,
+        "Video removed from playlist successfully",
+      ),
+    );
   // TODO: remove video from playlist
 });
 
