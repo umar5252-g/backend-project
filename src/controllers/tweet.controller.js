@@ -27,9 +27,9 @@ const getUserTweets = asyncHandler(async (req, res) => {
   if (!userId || !isValidObjectId(userId)) {
     throw new ApiError(400, "Invalid user id");
   }
-  if (req.user._id.toString() !== userId) {
-    throw new ApiError(403, "Forbidden: cannot access another user's tweets");
-  }
+  // if (req.user._id.toString() !== userId) {
+  //   throw new ApiError(403, "Forbidden: cannot access another user's tweets");
+  // }
   const tweets = await Tweet.find({ owner: userId }).populate("owner");
   return res
     .status(200)
