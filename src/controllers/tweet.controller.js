@@ -38,7 +38,8 @@ const getUserTweets = asyncHandler(async (req, res) => {
 
 const updateTweet = asyncHandler(async (req, res) => {
   //TODO: update tweet
-  const { content, tweetId } = req.body;
+  const { content } = req.body;
+  const { tweetId } = req.params;
   const tweet = await Tweet.findById(tweetId);
   if (!tweet) {
     throw new ApiError(404, "Tweet not found");
@@ -55,7 +56,7 @@ const updateTweet = asyncHandler(async (req, res) => {
 
 const deleteTweet = asyncHandler(async (req, res) => {
   //TODO: delete tweet
-  const { tweetId } = req.body;
+  const { tweetId } = req.params;
   const tweet = await Tweet.findById(tweetId);
   if (!tweet) {
     throw new ApiError(404, "Tweet not found");
