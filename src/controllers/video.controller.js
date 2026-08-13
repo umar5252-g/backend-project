@@ -79,10 +79,10 @@ const getVideoById = asyncHandler(async (req, res) => {
 const updateVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   //TODO: update video details like title, description, thumbnail
+
   if (!videoId) {
     throw new ApiError(400, "Video id is required");
   }
-
   if (!mongoose.Types.ObjectId.isValid(videoId)) {
     throw new ApiError(400, "Invalid video id");
   }
@@ -94,23 +94,24 @@ const updateVideo = asyncHandler(async (req, res) => {
   if (req.body.thumbnail !== undefined)
     updateFields.thumbnail = req.body.thumbnail;
 
+  // Ownership is safely enforced here via owner: req.user._id
   const video = await Video.findOneAndUpdate(
     { _id: videoId, owner: req.user._id },
-    {
-      $set: updateFields,
-    },
+    { $set: updateFields },
     { new: true },
   );
 
   if (!video) {
-    throw new ApiError(404, "Video not found");
+    throw new ApiError(
+      404,
+      "Video not found or you are not authorized to update this video",
+    );
   }
 
   return res
     .status(200)
     .json(new ApiResponse(200, video, "Video updated successfully"));
 });
-
 const deleteVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   //TODO: delete video
