@@ -9,10 +9,11 @@ import {
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
+router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 
-router.route("/video/:videoId").get(verifyJWT, getVideoComments);
-router.route("/video/:videoId").post(verifyJWT, addComment);
-router.route("/:commentId").patch(verifyJWT, updateComment);
-router.route("/:commentId").delete(verifyJWT, deleteComment);
+router.route("/video/:videoId").get(getVideoComments);
+router.route("/video/:videoId").post(addComment);
+router.route("/:commentId").patch(updateComment);
+router.route("/:commentId").delete(deleteComment);
 
 export default router;
