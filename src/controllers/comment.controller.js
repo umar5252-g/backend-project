@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 import { Comment } from "../models/comment.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -67,7 +67,7 @@ const addComment = asyncHandler(async (req, res) => {
   });
   await comment.save();
   if (!comment) {
-    throw new ApiError("400", "something went wront, unable to create comment");
+    throw new ApiError(400, "something went wrong, unable to create comment");
   }
 
   return res

@@ -7,11 +7,42 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 const toggleVideoLike = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   //TODO: toggle like on video
+  if (!videoId) {
+    throw new ApiError(400, "videoId is required");
+  }
 });
 
 const toggleCommentLike = asyncHandler(async (req, res) => {
   const { commentId } = req.params;
   //TODO: toggle like on comment
+  if (!commentId) {
+    throw new ApiError(400, "commentId is required");
+  }
+  if (!mongoose.isValidObjectId(commentId)) {
+    throw new ApiError(400, "Invalid commentId");
+  }
+
+  const like = await Like.findOne({
+    comment: commentId,
+    likedBy: req.user._id,
+  });
+
+  if (like) {
+    // If like exists, remove it (unlike)
+    await Like.deleteOne({ _id: like._id });
+    return res
+      .status(200)
+      .json(new ApiResponse(200, null, "Comment unliked successfully"));
+  }
+  // If like does not exist, create it (like)
+  const newLike = await Like.create({
+    comment: commentId,
+    likedBy: req.user._id,
+  });
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, newLike, "Comment liked successfully"));
 });
 
 const toggleTweetLike = asyncHandler(async (req, res) => {
