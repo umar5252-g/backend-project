@@ -10,6 +10,32 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
   if (!videoId) {
     throw new ApiError(400, "videoId is required");
   }
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "videoId is invalid");
+  }
+
+  const like = await Like.findOne({
+    video: videoId,
+    likedBy: req.user?._id,
+  });
+
+  if (like) {
+    const deleteLike = await Like.deleteOne({
+      _id: like._id,
+    });
+    if (!deleteLike) {
+      throw new ApiError(400, "error occur while deleting the like");
+    }
+
+    return res.status(200).json(400, null, "video uniked successfully ");
+  }
+
+  const createLike = await Like.create({
+    video: videoId,
+    likedBy: req.user?._id,
+  });
+
+  return res.status(200).json(200, "vidoe liked successfully");
 });
 
 const toggleCommentLike = asyncHandler(async (req, res) => {
@@ -31,8 +57,8 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
     // If like exists, remove it (unlike)
     await Like.deleteOne({ _id: like._id });
     return res
-      .status(200)
-      .json(new ApiResponse(200, null, "Comment unliked successfully"));
+      .status(201)
+      .json(new ApiResponse(201, null, "Comment unliked successfully"));
   }
   // If like does not exist, create it (like)
   const newLike = await Like.create({
