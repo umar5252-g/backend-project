@@ -1,4 +1,4 @@
-import mongoose, { isValidObjectId } from "mongoose";
+import { isValidObjectId } from "mongoose";
 import { Like } from "../models/like.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -6,64 +6,75 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 const toggleVideoLike = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  //TODO: toggle like on video
+
   if (!videoId) {
     throw new ApiError(400, "videoId is required");
   }
+
   if (!isValidObjectId(videoId)) {
-    throw new ApiError(400, "videoId is invalid");
+    throw new ApiError(400, "Invalid videoId");
   }
 
-  const like = await Like.findOne({
+  const userId = req.user._id;
+  const existingLike = await Like.findOne({
     video: videoId,
-    likedBy: req.user?._id,
+    likedBy: userId,
   });
 
-  if (like) {
-    const deleteLike = await Like.deleteOne({
-      _id: like._id,
-    });
-    if (!deleteLike) {
-      throw new ApiError(400, "error occur while deleting the like");
+  if (existingLike) {
+    const deleted = await Like.deleteOne({ _id: existingLike._id });
+
+    if (deleted.deletedCount === 0) {
+      throw new ApiError(500, "Unable to unlike video");
     }
 
-    return res.status(200).json(400, null, "video uniked successfully ");
+    return res
+      .status(200)
+      .json(new ApiResponse(200, null, "Video unliked successfully"));
   }
 
-  const createLike = await Like.create({
+  const newLike = await Like.create({
     video: videoId,
-    likedBy: req.user?._id,
+    likedBy: userId,
   });
 
-  return res.status(200).json(200, "vidoe liked successfully");
+  return res
+    .status(201)
+    .json(new ApiResponse(201, newLike, "Video liked successfully"));
 });
 
 const toggleCommentLike = asyncHandler(async (req, res) => {
   const { commentId } = req.params;
-  //TODO: toggle like on comment
+
   if (!commentId) {
     throw new ApiError(400, "commentId is required");
   }
-  if (!mongoose.isValidObjectId(commentId)) {
+
+  if (!isValidObjectId(commentId)) {
     throw new ApiError(400, "Invalid commentId");
   }
 
-  const like = await Like.findOne({
+  const userId = req.user._id;
+  const existingLike = await Like.findOne({
     comment: commentId,
-    likedBy: req.user._id,
+    likedBy: userId,
   });
 
-  if (like) {
-    // If like exists, remove it (unlike)
-    await Like.deleteOne({ _id: like._id });
+  if (existingLike) {
+    const deleted = await Like.deleteOne({ _id: existingLike._id });
+
+    if (deleted.deletedCount === 0) {
+      throw new ApiError(500, "Unable to unlike comment");
+    }
+
     return res
-      .status(201)
-      .json(new ApiResponse(201, null, "Comment unliked successfully"));
+      .status(200)
+      .json(new ApiResponse(200, null, "Comment unliked successfully"));
   }
-  // If like does not exist, create it (like)
+
   const newLike = await Like.create({
     comment: commentId,
-    likedBy: req.user._id,
+    likedBy: userId,
   });
 
   return res
@@ -73,11 +84,65 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
 
 const toggleTweetLike = asyncHandler(async (req, res) => {
   const { tweetId } = req.params;
-  //TODO: toggle like on tweet
+
+  if (!tweetId) {
+    throw new ApiError(400, "tweetId is required");
+  }
+
+  if (!isValidObjectId(tweetId)) {
+    throw new ApiError(400, "Invalid tweetId");
+  }
+
+  const userId = req.user._id;
+  const existingLike = await Like.findOne({
+    tweet: tweetId,
+    likedBy: userId,
+  });
+
+  if (existingLike) {
+    const deleted = await Like.deleteOne({ _id: existingLike._id });
+
+    if (deleted.deletedCount === 0) {
+      throw new ApiError(500, "Unable to unlike tweet");
+    }
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, null, "Tweet unliked successfully"));
+  }
+
+  const newLike = await Like.create({
+    tweet: tweetId,
+    likedBy: userId,
+  });
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, newLike, "Tweet liked successfully"));
 });
 
 const getLikedVideos = asyncHandler(async (req, res) => {
-  //TODO: get all liked videos
+  const likedVideos = await Like.find({
+    likedBy: req.user._id,
+    video: { $exists: true, $ne: null },
+  }).populate({
+    path: "video",
+    select: "title description thumbnail videoFile owner duration isPublished",
+    populate: {
+      path: "owner",
+      select: "username fullName avatar",
+    },
+  });
+
+  if (!likedVideos || likedVideos.length === 0) {
+    throw new ApiError(404, "No liked videos found");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, likedVideos, "Liked videos fetched successfully"),
+    );
 });
 
 export { toggleCommentLike, toggleTweetLike, toggleVideoLike, getLikedVideos };
